@@ -2,31 +2,30 @@ import React, { useRef, useState } from "react";
 import {
   Canvas,
   MeshProps,
-  PointLightProps,
+  Object3DNode,
+  Vector3,
+  extend,
   useFrame,
 } from "@react-three/fiber";
-import {
-  BufferGeometry,
-  Euler,
-  Material,
-  Mesh,
-  PerspectiveCamera,
-} from "three";
-import { OrbitControls } from "@react-three/drei";
+import { BufferGeometry, Euler, Material, Mesh } from "three";
+import { TextGeometry } from "three/examples/jsm/geometries/TextGeometry";
+import { Center, OrbitControls, Text3D } from "@react-three/drei";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import {
+  HORIZONTAL_ANGULAR_MIN,
+  HORIZONTAL_ANGULAR_MAX,
+  VERTICAL_ANGULAR_MAX,
+  VERTICAL_ANGULAR_MIN,
+} from "./constants";
+extend({ TextGeometry });
+declare module "@react-three/fiber" {
+  interface ThreeElements {
+    textGeometry: Object3DNode<TextGeometry, typeof TextGeometry>;
+  }
+}
 
 export const SampleCanvas: React.FC = () => {
-  const [pointLightProps, setPointLightProps] = useState<PointLightProps>({
-    position: [10, 10, 10],
-  });
-  const [threeBox1Props, setThreeBox1Props] = useState<MeshProps>({
-    position: [-1.2, 0, -10],
-  });
-  const [threeBox2Props, setThreeBox2Props] = useState<MeshProps>({
-    position: [1.2, 0, -10],
-  });
-
   return (
     <Box component="div">
       <Box
@@ -51,29 +50,34 @@ export const SampleCanvas: React.FC = () => {
         bottom={0}
         margin="auto"
       >
-        <Canvas
-        // camera={
-        //   new PerspectiveCamera(
-        //     60,
-        //     window.innerWidth / window.innerHeight,
-        //     0.1,
-        //     100
-        //   )
-        // }
-        >
+        <Canvas>
           <color attach="background" args={["whitesmoke"]} />
           <perspectiveCamera
-            fov={90}
+            fov={60}
             aspect={window.innerWidth / window.innerHeight}
             near={0.1}
             far={100}
           />
-          <OrbitControls enableZoom={false} enablePan={false} />
+          <OrbitControls
+            enableZoom={false}
+            enablePan={false}
+            minAzimuthAngle={HORIZONTAL_ANGULAR_MIN} // よこふりむき開始角(みぎ)
+            maxAzimuthAngle={HORIZONTAL_ANGULAR_MAX} // よこふりむき開始角(ひだり)
+            minPolarAngle={VERTICAL_ANGULAR_MIN} // たてふりむき下限角 (真下0)
+            maxPolarAngle={VERTICAL_ANGULAR_MAX} // たてふりむき上限角
+          />
           <ambientLight />
-          <pointLight position={pointLightProps.position} />
-          <ThreeBox boxMeshProps={threeBox1Props} />
-          <ThreeBox boxMeshProps={threeBox2Props} />
+          <pointLight position={[10, 10, 10]} />
+          <ThreeBox boxMeshProps={{ position: [1.2, 0, -10] }} />
+          <ThreeBox boxMeshProps={{ position: [-1.2, 0, -10] }} />
+          <ThreeBox boxMeshProps={{ position: [1.2, 0, 10] }} />
+          <ThreeBox boxMeshProps={{ position: [-1.2, 0, 10] }} />
           <BoundaryBox />
+          <Board place="left" />
+          <Board place="right" />
+          <Board place="center" />
+          <Board place="top" />
+          <SampleText place="center" />
         </Canvas>
       </Box>
     </Box>
@@ -123,5 +127,75 @@ const BoundaryBox: React.FC<{}> = () => {
       <boxGeometry args={[3, 3, 3]} />
       <meshStandardMaterial color="#9999ff" opacity={0.5} transparent />
     </mesh>
+  );
+};
+
+type BoardPlace = "left" | "right" | "center" | "top";
+
+type BoardProps = {
+  place: BoardPlace;
+};
+
+const getPosition = (place: BoardPlace): Vector3 => {
+  const positionY: number = -2;
+  switch (place) {
+    case "left":
+      return [-10, positionY, 2];
+    case "right":
+      return [10, positionY, 2];
+    case "center":
+      return [0, positionY, -3];
+    case "top":
+      return [0, positionY + 9, -3];
+  }
+};
+
+const getRotation = (place: BoardPlace): Euler => {
+  const angular = Math.PI / 4;
+  switch (place) {
+    case "left":
+      return new Euler(0, angular, 0);
+    case "right":
+      return new Euler(0, -angular, 0);
+    case "center":
+      return new Euler(0, 0, 0);
+    case "top":
+      return new Euler(angular, 0, 0);
+  }
+};
+
+const Board: React.FC<BoardProps> = ({ place }) => {
+  return (
+    <mesh position={getPosition(place)} rotation={getRotation(place)}>
+      <boxGeometry args={[12, 8, 0.5]} />
+      <meshStandardMaterial color="green" opacity={0.5} transparent />
+    </mesh>
+  );
+};
+
+const SampleText: React.FC<BoardProps> = ({ place }) => {
+  // const font = new FontLoader().parse("/fonts/Yusei_Magic_Regular.json");
+  // return (
+  //   <mesh position={getPosition(place)} rotation={getRotation(place)}>
+  //     {/* <boxGeometry args={[12, 8, 0.5]} /> */}
+  //     <textGeometry args={["test", { font, size: 5, height: 1 }]} />
+  //     <meshStandardMaterial color="black" />
+  //   </mesh>
+  // );
+  const sampleTextMessage = "こんにちは世界\nわたしが支配者である！";
+  return (
+    <Center top>
+      {/* <Text3D font="/fonts/Yusei_Magic_Regular.json"> */}
+      {/* <Text3D font="/fonts/DotGothic16_Regular.json"> */}
+      <Text3D
+        font="/fonts/Yusei_Magic_Regular.json"
+        position={[0, 0, -9]}
+        size={0.5}
+        letterSpacing={0.1}
+      >
+        {sampleTextMessage}
+        <meshStandardMaterial color="black" />
+      </Text3D>
+    </Center>
   );
 };
