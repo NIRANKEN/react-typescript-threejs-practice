@@ -19,7 +19,7 @@ jobs:
         run: |
           echo ${GITHUB_REF_VAR}
           echo ${CLIENT_REF}
-          echo "BRANCH="$(echo ${GITHUB_REF#refs/heads/})
-          echo "TAG="$(echo ${GITHUB_REF#refs/tags/})
+          echo "BRANCH="$(echo ${GITHUB_REF#refs/heads/}) >> $GITHUB_ENV
+          echo "TAG="$(echo ${GITHUB_REF#refs/tags/}) >> $GITHUB_ENV
           echo "BRANCH="$(echo ${CLIENT_REF#refs/heads/})
-          echo "AWS_S3_BUCKET_FULL=$([ -n $TAG ] && echo s3://hoge/fuga/$TAG || echo s3://hoge/fuga/$BRANCH/)"
+          echo "AWS_S3_BUCKET_FULL=$([ -n $TAG ] && echo s3://hoge/fuga/$TAG || echo s3://hoge/fuga/$BRANCH/)" >> $GITHUB_ENV
