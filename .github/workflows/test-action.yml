@@ -2,6 +2,8 @@ name: test-action
 
 on:
   push:
+    branches:
+      - test-*
     tags:
       - v*
 
@@ -20,3 +22,4 @@ jobs:
           echo "BRANCH="$(echo ${GITHUB_REF#refs/heads/})
           echo "TAG="$(echo ${GITHUB_REF#refs/tags/})
           echo "BRANCH="$(echo ${CLIENT_REF#refs/heads/})
+          echo "AWS_S3_BUCKET_FULL=$([ -n $TAG ] && echo s3://hoge/fuga/$TAG || echo s3://hoge/fuga/$BRANCH/)"
