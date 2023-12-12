@@ -1,0 +1,19 @@
+name: test-action
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: test
+        run: |
+          echo ${github.ref}
+          echo ${ github.event.client_payload.ref }
+          echo "BRANCH="$(echo ${GITHUB_REF#refs/heads/})
+          echo "TAG="$(echo ${GITHUB_REF#refs/tags/})
+          echo "BRANCH="$(echo ${CLIENT_REF#refs/heads/})
