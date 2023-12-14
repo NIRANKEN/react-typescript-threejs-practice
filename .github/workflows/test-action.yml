@@ -6,13 +6,22 @@ on:
       - test-*
     tags:
       - v*
+  repository_dispatch:
+    types: [test]
   workflow_dispatch:
+  
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - name: checkout on dispatch
+        if: github.event.client_payload
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.client_payload.ref }}
+
       - name: test
         env:
           GITHUB_REF_VAR: ${{ github.ref }}
@@ -30,3 +39,15 @@ jobs:
         run: |
           echo "AWS_S3_BUCKET_FULL=$([ -n $TAG ] && echo s3://hoge/fuga/$TAG || echo s3://hoge/fuga/$BRANCH/)"
           echo "AWS_S3_BUCKET_FULL=$([ -n $TAG ] && echo s3://hoge/fuga/$TAG || echo s3://hoge/fuga/$BRANCH/)" >> $GITHUB_ENV
+
+      - name: test3
+        if: github.event.client_payload && !startsWith(github.event.client_payload.ref, 'tags/')
+        run: |
+          echo "BRANCH="$(echo ${GITHUB_REF#refs/heads/})
+          echo "TAG="$(echo ${GITHUB_REF#refs/heads/}) >> $GITHUB_ENV
+
+      - name: test4
+        if: github.event.client_payload && startsWith(github.event.client_payload.ref, 'tags/')
+        run: |
+          echo "TAG="$(echo tags/${GITHUB_REF#refs/tags/})
+          echo "TAG="$(echo tags/${GITHUB_REF#refs/tags/}) >> $GITHUB_ENV
