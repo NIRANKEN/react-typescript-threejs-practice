@@ -45,9 +45,13 @@ jobs:
         run: |
           echo "BRANCH="$(echo ${GITHUB_REF#refs/heads/})
           echo "TAG="$(echo ${GITHUB_REF#refs/heads/}) >> $GITHUB_ENV
+        env:
+          CLIENT_REF: ${{ github.event.client_payload.ref }}
 
       - name: test4
         if: github.event.client_payload && startsWith(github.event.client_payload.ref, 'refs/tags/')
         run: |
           echo "TAG="$(echo tags/${GITHUB_REF#refs/tags/})
           echo "TAG="$(echo tags/${GITHUB_REF#refs/tags/}) >> $GITHUB_ENV
+        env:
+          CLIENT_REF: ${{ github.event.client_payload.ref }}
