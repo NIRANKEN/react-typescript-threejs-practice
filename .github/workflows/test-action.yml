@@ -1,0 +1,32 @@
+name: test-action
+
+on:
+  push:
+    branches:
+      - test-*
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: test
+        env:
+          GITHUB_REF_VAR: ${{ github.ref }}
+          CLIENT_REF: ${{ github.event.client_payload.ref }}
+        run: |
+          echo ${GITHUB_REF_VAR}
+          echo ${CLIENT_REF}
+          echo "BRANCH="$(echo ${GITHUB_REF_VAR#refs/heads/})
+          echo "BRANCH="$(echo ${GITHUB_REF#refs/heads/}) >> $GITHUB_ENV
+          echo "TAG="$(echo ${GITHUB_REF_VAR#refs/tags/})
+          echo "TAG="$(echo ${GITHUB_REF#refs/tags/}) >> $GITHUB_ENV
+          echo "BRANCH="$(echo ${CLIENT_REF#refs/heads/})
+
+      - name: test2
+        run: |
+          echo "AWS_S3_BUCKET_FULL=$([ -n $TAG ] && echo s3://hoge/fuga/$TAG || echo s3://hoge/fuga/$BRANCH/)"
+          echo "AWS_S3_BUCKET_FULL=$([ -n $TAG ] && echo s3://hoge/fuga/$TAG || echo s3://hoge/fuga/$BRANCH/)" >> $GITHUB_ENV
